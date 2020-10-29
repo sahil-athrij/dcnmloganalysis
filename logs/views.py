@@ -26,8 +26,12 @@ def get_filenames_gz(path_to_gz, name):
     tar = tarfile.open(path_to_gz, "r:gz")
     print(os.getcwd())
     print(f'./media/{name}')
-    tar.extractall(f'./media/{name}')
-
+    print(tar.getmembers())
+    for i in tar.getmembers():
+        try:
+            tar.extract(i,f'./media/{name}')
+        except PermissionError:
+            pass
     return tar.getmembers()
 
 
