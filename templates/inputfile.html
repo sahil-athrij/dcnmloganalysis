@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+
+    <link href="https://microsoft.github.io/monaco-editor/lib/bootstrap-cosmo.css" rel="stylesheet" type="text/css">
+    <link href="https://microsoft.github.io/monaco-editor/lib/bootstrap-responsive.min.css" rel="stylesheet"
+          type="text/css">
+    <link href="https://microsoft.github.io/monaco-editor/all.css" rel="stylesheet" type="text/css">
+    <link href="https://microsoft.github.io/monaco-editor/index/index.css" rel="stylesheet" type="text/css">
+    <link type="text/css"
+          href="https://microsoft.github.io/monaco-editor/node_modules/monaco-editor/min/vs/editor/editor.main.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet" type="text/css" href="/static/demo/css/demo.css">
+{% endblock %}
+
+
+{% block body %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <a href="{% url 'chunked_upload' %}" class="glyphicon glyphicon-chevron-left"></a>
+        </div>
+
+        <div class="row">
+            <p class="h3 mx-5">List of Files</p>
+
+            <div class="form-check form-check-inline">
+
+                <label class="text-danger"><span class="text-secondary">Filter File Content By : </span><input
+                        type="radio" class="form-check-input" value="Error" name="error"
+                        checked>Error</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <label class="text-warning"><input type="radio" class="form-check-input" value="Warn" name="error">Warnings</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <label class="text-primary"><input type="radio" class="form-check-input" value="All"
+                                                   name="error">All</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-4">
+
+                <ul class="card-body-now ">{% for f in subfiles %}{{ f }}{% endfor %}</ul>
+            </div>
+            <div class="col-8">
+
+                <div class="text-center" id="loader" style="display: none">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Loading..... Extracting the Files</span>
+                    </div>
+                </div>
+                {#                <pre style="max-height: 90vh">#}
+                {#                    <code id="code_container" class="language-clike">#}
+                {#                    </code>#}
+                {#                </pre>#}
+                <div id="container"></div>
+
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+    </div>
+{% endblock %}
+
+{% block script %}
+
+    <script src="{% static  'demo/js/jquery.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('label.tree-toggler').click(function () {
+                $(this).parent().children('ul.tree').toggle(300);
+            });
+        });
+
+        function openfile(filename) {
+            console.log(filename)
+            $('#loader').show()
+            let er = $("[name='error']:checked").val();
+            $.ajax({
+                url: `{% url 'serve_file' %}?file=${filename}&err=${er}`,
+                type: 'GET',
+                success: function (data) {
+                    editor.setValue(data)
+                    $('#loader').hide()
+                }
+            })
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js" type="text/javascript"></script>
+
+    <!-- jquery -->
+    <script type="text/javascript"
+            src="https://microsoft.github.io/monaco-editor/node_modules/monaco-editor/min/vs/loader.js"></script>
+    <script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
+
+    <script>
+        require.config({paths: {'vs': 'https://unpkg.com/monaco-editor@latest/min/vs'}});
+        window.MonacoEnvironment = {getWorkerUrl: () => proxy};
+
+        let proxy = URL.createObjectURL(new Blob([`
+	self.MonacoEnvironment = {
+		baseUrl: 'https://unpkg.com/monaco-editor@latest/min/'
+	};
+	importScripts('https://unpkg.com/monaco-editor@latest/min/vs/base/worker/workerMain.js');`], {type: 'text/javascript'}));
+
+        require(["vs/editor/editor.main"], function () {
+            editor = monaco.editor.create(document.getElementById('container'), {
+                value: [`Please Select the file you want to view the Errors in.
+Use the Check box to  select what type of errors you want to filter`
+                ].join('\n'),
+                language: 'javascript',
+                theme: 'vs-dark'
+            });
+        });
+    </script>
+
+{% endblock %}

@@ -1,0 +1,37 @@
+
+
+body {
+    color: #5A5A5A;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.title {
+    text-align: center;
+}
+
+.tree {
+    list-style-type: none;
+
+}
+
+.tree-leaf {
+    list-style: none;
+    background-image: none;
+    background-position: 0;
+    cursor: pointer;
+}
+
+.tree-toggler {
+    cursor: pointer;
+}
+
+.card-body-now {
+    background-color: #dadada;
+    border-radius: 10px;
+}
+
+#container{
+    height: 90vh;
+    width: 90%;
+}
