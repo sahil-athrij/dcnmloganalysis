@@ -93,18 +93,22 @@ class ProcessFile(TemplateView):
                         continue
 
                     color = 'text-success'
-                    with open(t, 'rb') as fil:
-                        try:
+                    try:
+
+                        with open(t, 'rb') as fil:
                             try:
-                                file_text = fil.read()
-                            except MemoryError:
-                                file_text = fil.read(30000)
-                            if b'ERROR' in file_text:
-                                color = 'text-danger'
-                            elif b'WARN' in file_text:
-                                color = 'text-warning'
-                        except:
-                            pass
+                                try:
+                                    file_text = fil.read()
+                                except MemoryError:
+                                    file_text = fil.read(30000)
+                                if b'ERROR' in file_text:
+                                    color = 'text-danger'
+                                elif b'WARN' in file_text:
+                                    color = 'text-warning'
+                            except:
+                                pass
+                    except:
+                        pass
                     yield loader.render_to_string('file.html',
                                                   {'file': mfile, 'location': t, 'color': color})
 
