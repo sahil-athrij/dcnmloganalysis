@@ -27,6 +27,34 @@
         <div class="h4 text-secondary">
             Tool made in 30 mins , it contains lots of errors , pls report any to sathrij@cisco.com
         </div>
+
+        <div>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Filename</th>
+                    <th scope="col">Link</th>
+
+                </tr>
+                </thead>
+                <tbody>
+                {% for file in files %}
+                    <tr>
+                        <th scope="row">{{ forloop.counter }}</th>
+                        <td>{{ file.filename }}</td>
+                        <td>
+                            <a class="btn btn-success"
+                               href="{% url 'view_errors' %}?id={{ file.id }}">
+                                View Errors
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
     </div>
 {% endblock %}
 

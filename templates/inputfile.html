@@ -21,6 +21,20 @@
     <div class="container-fluid">
         <div class="">
             <a href="{% url 'chunked_upload' %}" class="btn button">Back</a>
+
+            <div>
+                {% if display %}
+                    <p class="text-danger">
+                        Extraction Of Archive Failed. If this is the first Time you are viewing the page , Then there is
+                        a issue with the archive, However Partial results are available. It also may be that only
+                        SYM-Links Failed Which is entirely okay
+                    </p>
+                {% else %}
+                    <p class="text-success">
+                        Extraction Of Archive Successful.
+                    </p>
+                {% endif %}
+            </div>
         </div>
 
         <div class="row">
