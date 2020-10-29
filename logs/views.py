@@ -11,9 +11,8 @@ from zipfile import ZipFile
 import tarfile
 
 
-def get_filenames_zip(path_to_zip,name):
+def get_filenames_zip(path_to_zip, name):
     """ return list of filenames inside of the zip folder"""
-
 
     with ZipFile(path_to_zip, 'r') as zip:
         try:
@@ -95,8 +94,11 @@ class ProcessFile(TemplateView):
 
                     color = 'text-success'
                     with open(t, 'rb') as fil:
-                        file_text = fil.read()
                         try:
+                            try:
+                                file_text = fil.read()
+                            except MemoryError:
+                                file_text = fil.read(30000)
                             if b'ERROR' in file_text:
                                 color = 'text-danger'
                             elif b'WARN' in file_text:
@@ -139,7 +141,7 @@ def serversinglefile(request):
 
         i += 1
 
-    if text==[]:
+    if text == []:
         text.append('No errors found')
     text = ''.join(text)
 
