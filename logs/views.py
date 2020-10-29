@@ -24,8 +24,8 @@ def get_filenames_zip(path_to_zip, name):
 
 def get_filenames_gz(path_to_gz, name):
     tar = tarfile.open(path_to_gz, "r:gz")
-
-    tar.extractall(f'{settings.BASE_DIR}/media/{name}')
+    print(os.getcwd())
+    tar.extractall(f'./media/{name}')
 
     return tar.getmembers()
 
