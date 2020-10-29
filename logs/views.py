@@ -92,9 +92,9 @@ class ProcessFile(TemplateView):
                                                        'subfiles': _index(t)})
                         continue
 
-                    color = 'text-success'
-                    try:
 
+                    try:
+                        color = 'text-success'
                         with open(t, 'rb') as fil:
                             try:
                                 try:
@@ -108,7 +108,7 @@ class ProcessFile(TemplateView):
                             except:
                                 pass
                     except:
-                        pass
+                        color=''
                     yield loader.render_to_string('file.html',
                                                   {'file': mfile, 'location': t, 'color': color})
 
