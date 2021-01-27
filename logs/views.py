@@ -1,6 +1,7 @@
+import gzip
 import os
 import dcnmloganalysis.settings as settings
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.generic.base import TemplateView, View
 from chunked_upload.views import ChunkedUploadView, ChunkedUploadCompleteView
@@ -11,7 +12,7 @@ from shutil import copyfile
 from zipfile import ZipFile
 import tarfile
 
-from pyunpack import Archive
+from pyunpack import Archive, PatoolError
 
 
 def extract_all(path_to_archive, name, filename):
@@ -20,6 +21,7 @@ def extract_all(path_to_archive, name, filename):
     try:
         os.mkdir(f'media/{name}/')
         Archive(f'media/{filename}').extractall(f'media/{name}/')
+
     except:
         return False
     return True
@@ -63,6 +65,76 @@ class FileUploadCompleteView(ChunkedUploadCompleteView):
                 'file_id': f'{chunked_upload.id}'}
 
 
+magic_dict = {
+    b"\x1f\x8b\x08": "gz",
+    b"\x42\x5a\x68": "bz2",
+    b"\x50\x4b\x03\x04": "zip",
+    b"\x75\x73\x61\x72": "tar",
+    b"\xFD\x37\x7A\x58\x5A\x00": "tar"
+}
+
+max_len = max(len(x) for x in magic_dict)
+
+
+def file_type(filename):
+    with open(filename, 'rb') as f:
+        file_start = f.read(max_len)
+    for magic, filetype in magic_dict.items():
+        if file_start.startswith(magic):
+            return filetype
+    return False
+
+
+def index_maker(folder):
+    def _index(root):
+        files = os.listdir(root)
+        print(root)
+        print(files)
+        files.sort()
+        for mfile in files:
+            t = f'{root}/{mfile}'
+            print(t)
+            fname = t.split('.')
+            fname = fname[0] + fname[-1]
+
+            if os.path.isdir(t):
+                yield loader.render_to_string('folder.html',
+                                              {'file': mfile,
+                                               'location': t,
+                                               'subfiles': _index(t)})
+
+            else:
+                if file_type(t):
+                    yield loader.render_to_string('zip.html',
+                                                  {'file': mfile,
+                                                   'location': t,
+                                                   'color': 'text-secondary'})
+                    continue
+
+                try:
+                    color = 'text-success'
+                    with open(t, 'rb') as fil:
+                        try:
+                            try:
+                                file_text = fil.read()
+                            except MemoryError:
+                                file_text = fil.read(30000)
+                            if b'ERROR' in file_text:
+                                color = 'text-danger'
+                            elif b'WARN' in file_text:
+                                color = 'text-warning'
+                        except:
+                            pass
+
+                except:
+                    color = ''
+
+                yield loader.render_to_string('file.html',
+                                              {'file': mfile, 'location': t, 'color': color})
+
+    return _index(folder)
+
+
 class ProcessFile(TemplateView):
     template_name = 'inputfile.html'
 
@@ -74,55 +146,22 @@ class ProcessFile(TemplateView):
             display_object = Display.objects.get(id=int(file_id))
         except Display.DoesNotExist:
             display_object = False
+        display_object = False
 
         if not display_object:
             files = ChunkedUpload.objects.get(id=file_id)
             foldername = files.filename.split('.')[0]
             truth = extract_all(files.file, foldername, files.filename)
 
-            def index_maker():
-                def _index(root):
-                    files = os.listdir(root)
-                    print(root)
-                    print(files)
-                    for mfile in files:
-                        t = f'{root}/{mfile}'
-                        if os.path.isdir(t):
-                            yield loader.render_to_string('folder.html',
-                                                          {'file': mfile,
-                                                           'subfiles': _index(t)})
-                            continue
-
-                        try:
-                            color = 'text-success'
-                            with open(t, 'rb') as fil:
-                                try:
-                                    try:
-                                        file_text = fil.read()
-                                    except MemoryError:
-                                        file_text = fil.read(30000)
-                                    if b'ERROR' in file_text:
-                                        color = 'text-danger'
-                                    elif b'WARN' in file_text:
-                                        color = 'text-warning'
-                                except:
-                                    pass
-                        except:
-                            color = ''
-                        yield loader.render_to_string('file.html',
-                                                      {'file': mfile, 'location': t, 'color': color})
-
-                return _index(f'media/{foldername}')
-
-            c = index_maker()
-            html = render(request, ProcessFile.template_name, {'subfiles': c, 'display': False})
-            Display.objects.create(id=int(file_id), html=html.content.decode('utf-8'))
-            c = index_maker()
+            # c = index_maker()
+            # html = render(request, ProcessFile.template_name, {'subfiles': c, 'display': False})
+            # Display.objects.create(id=int(file_id), html=html.content.decode('utf-8'))
+            c = index_maker(f'media/{foldername}')
             return render(request, ProcessFile.template_name, {'subfiles': c, 'display': not truth})
         else:
             truth = True
             c = display_object.html
-            return render(request,'description.html',{'description':c})
+            return render(request, 'description.html', {'description': c})
 
     def post(self, request, **kwargs):
         return "Hello World"
@@ -131,6 +170,27 @@ class ProcessFile(TemplateView):
 def serversinglefile(request):
     files = request.GET.get('file')
     methods = request.GET.get('err')
+    print(files)
+    lst = files.split('/')
+    last = lst.pop(-1)
+    name = '/'.join(lst)
+    text = ''
+
+    try:
+
+        Archive(files).extractall(name)
+        c = index_maker(f'{name}')
+        return JsonResponse({'type': 'zip', 'data': loader.render_to_string( 'subfolder.html', {'subfiles': c})})
+    except PatoolError as e:
+        try:
+            t = last.split('.')[0]
+            with tarfile.open(files) as f:
+                f.extractall(f'{name}/{t}')
+                c = index_maker(f'{name}')
+                return JsonResponse({'type': 'zip', 'data': loader.render_to_string('subfolder.html', {'subfiles': c})})
+            return HttpResponse(text)
+        except Exception as e:
+            print(e)
     if methods == 'All':
         return HttpResponse(open(files, 'r').read())
     lines = open(files, 'r').readlines()

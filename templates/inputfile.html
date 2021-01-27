@@ -17,7 +17,6 @@
 
 
 {% block body %}
-
     <div class="container-fluid">
         <div class="">
             <a href="{% url 'chunked_upload' %}" class="btn button">Back</a>
@@ -55,7 +54,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col col-4">
+            <div class="col col-4" id = "sidebar">
 
                 <ul class="card-body-now ">{% for f in subfiles %}{{ f }}{% endfor %}</ul>
             </div>
