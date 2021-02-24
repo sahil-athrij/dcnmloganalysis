@@ -77,11 +77,14 @@ max_len = max(len(x) for x in magic_dict)
 
 
 def file_type(filename):
-    with open(filename, 'rb') as f:
-        file_start = f.read(max_len)
-    for magic, filetype in magic_dict.items():
-        if file_start.startswith(magic):
-            return filetype
+    try:
+        with open(filename, 'rb') as f:
+            file_start = f.read(max_len)
+        for magic, filetype in magic_dict.items():
+            if file_start.startswith(magic):
+                return filetype
+    except:
+        pass
     return False
 
 
@@ -180,7 +183,7 @@ def serversinglefile(request):
 
         Archive(files).extractall(name)
         c = index_maker(f'{name}')
-        return JsonResponse({'type': 'zip', 'data': loader.render_to_string( 'subfolder.html', {'subfiles': c})})
+        return JsonResponse({'type': 'zip', 'data': loader.render_to_string('subfolder.html', {'subfiles': c})})
     except PatoolError as e:
         try:
             t = last.split('.')[0]
