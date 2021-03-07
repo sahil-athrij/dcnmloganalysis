@@ -88,7 +88,7 @@ def file_type(filename):
     return False
 
 
-def index_maker(folder):
+def index_maker(folder, search=''):
     def _index(root):
         files = os.listdir(root)
         print(root)
@@ -118,14 +118,20 @@ def index_maker(folder):
                     color = 'text-success'
                     with open(t, 'rb') as fil:
                         try:
+
                             try:
                                 file_text = fil.read()
                             except MemoryError:
                                 file_text = fil.read(30000)
-                            if b'ERROR' in file_text:
-                                color = 'text-danger'
-                            elif b'WARN' in file_text:
-                                color = 'text-warning'
+                            if not search:
+                                if b'ERROR' in file_text:
+                                    color = 'text-danger'
+                                elif b'WARN' in file_text:
+                                    color = 'text-warning'
+                            else:
+                                if search.encode() in file_text:
+                                    color = 'text-danger'
+
                         except:
                             pass
 
@@ -145,29 +151,31 @@ class ProcessFile(TemplateView):
         print(request.GET.get('id'))
         file_id = request.GET.get('id')
 
-        try:
-            display_object = Display.objects.get(id=int(file_id))
-        except Display.DoesNotExist:
-            display_object = False
-        display_object = False
-
-        if not display_object:
-            files = ChunkedUpload.objects.get(id=file_id)
-            foldername = files.filename.split('.')[0]
-            truth = extract_all(files.file, foldername, files.filename)
-
-            # c = index_maker()
-            # html = render(request, ProcessFile.template_name, {'subfiles': c, 'display': False})
-            # Display.objects.create(id=int(file_id), html=html.content.decode('utf-8'))
-            c = index_maker(f'media/{foldername}')
-            return render(request, ProcessFile.template_name, {'subfiles': c, 'display': not truth})
-        else:
-            truth = True
-            c = display_object.html
-            return render(request, 'description.html', {'description': c})
+        files = ChunkedUpload.objects.get(id=file_id)
+        foldername = files.filename.split('.')[0]
+        truth = extract_all(files.file, foldername, files.filename)
+        c = index_maker(f'media/{foldername}')
+        return render(request, ProcessFile.template_name, {'subfiles': c, 'display': not truth, 'id': file_id})
 
     def post(self, request, **kwargs):
         return "Hello World"
+
+
+class Search(TemplateView):
+    template_name = 'inputfile.html'
+
+    def get(self, request, **kwargs):
+        print(request.GET.get('id'))
+        file_id = request.GET.get('id')
+        search = request.GET.get('search')
+
+        files = ChunkedUpload.objects.get(id=file_id)
+        foldername = files.filename.split('.')[0]
+        truth = extract_all(files.file, foldername, files.filename)
+        c = index_maker(f'media/{foldername}', search)
+        print(search)
+        return render(request, ProcessFile.template_name, {'subfiles': c, 'display': not truth,
+                                                           'id': file_id, 'search': search})
 
 
 def serversinglefile(request):
@@ -199,17 +207,27 @@ def serversinglefile(request):
     lines = open(files, 'r').readlines()
     i = 0
     text = []
+    print(methods)
     while i < (len(lines)):
         try:
-            if 'ERROR' in lines[i]:
-                text.extend(lines[i:i + 5])
-                text.append('\n\n')
-                i += 4
+            if methods == "search":
+                searcher = request.GET.get('search')
+                print(searcher)
+                if searcher in lines[i] or searcher.lower() in lines[i]:
+                    text.extend(lines[i:i + 5])
+                    text.append('\n\n')
+                    i += 4
+            else:
+                if 'ERROR' in lines[i]:
+                    text.extend(lines[i:i + 5])
+                    text.append('\n\n')
+                    i += 4
 
-            if ('WARN' in lines[i] or 'warn' in lines[i]) and methods == 'Warn':
-                text.extend(lines[i:i + 5])
-                text.append('\n\n')
-                i += 4
+                if ('WARN' in lines[i] or 'warn' in lines[i]) and methods == 'Warn':
+                    text.extend(lines[i:i + 5])
+                    text.append('\n\n')
+                    i += 4
+
         except IndexError:
             pass
 

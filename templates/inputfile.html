@@ -3,7 +3,7 @@
 
 {% block css %}
 
-    <link href="https://microsoft.github.io/monaco-editor/lib/bootstrap-cosmo.css" rel="stylesheet" type="text/css">
+{#    <link href="https://microsoft.github.io/monaco-editor/lib/bootstrap-cosmo.css" rel="stylesheet" type="text/css">#}
     <link href="https://microsoft.github.io/monaco-editor/lib/bootstrap-responsive.min.css" rel="stylesheet"
           type="text/css">
     <link href="https://microsoft.github.io/monaco-editor/all.css" rel="stylesheet" type="text/css">
@@ -40,7 +40,6 @@
             <p class="h3 mx-5">List of Files</p>
 
             <div class="form-check form-check-inline">
-
                 <label class="text-danger"><span class="text-secondary">Filter File Content By : </span><input
                         type="radio" class="form-check-input" value="Error" name="error"
                         checked>Error</label>
@@ -52,23 +51,45 @@
                 <label class="text-primary"><input type="radio" class="form-check-input" value="All"
                                                    name="error">All</label>
             </div>
+
+            <div class="form-check form-check-inline">
+                <label class="text-primary">
+                    <input type="radio" class="form-check-input" value="search"
+                           name="error">search</label>
+            </div>
+
+
         </div>
         <div class="row">
-            <div class="col col-4" id = "sidebar">
+            <div class="col-md-6">
 
+            </div>
+            <div class="col-md-3 col-12">
+
+                <form action="/search/">
+                    <div class="form-group input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon3">Search For: </span>
+                        </div>
+                        <input name="id" value="{{ id }}" hidden>
+                        <input type="text" name="search" id="search" value="{{ search }}" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+                        <button class="btn btn-primary">Submit </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col col-4" id="sidebar">
                 <ul class="card-body-now ">{% for f in subfiles %}{{ f }}{% endfor %}</ul>
             </div>
             <div class="col-8">
-
+                <div class="breadcrumbs text-primary" id="filedisplay"></div>
                 <div class="text-center" id="loader" style="display: none">
                     <div class="spinner-border" role="status">
                         <span class="sr-only">Loading..... Extracting the Files</span>
                     </div>
                 </div>
-                {#                <pre style="max-height: 90vh">#}
-                {#                    <code id="code_container" class="language-clike">#}
-                {#                    </code>#}
-                {#                </pre>#}
                 <div id="container"></div>
 
 
@@ -79,7 +100,6 @@
 
     </div>
 
-    </div>
 {% endblock %}
 
 {% block script %}
@@ -94,11 +114,16 @@
         });
 
         function openfile(filename) {
-            console.log(filename)
+            {#console.log(filename)#}
             $('#loader').show()
             let er = $("[name='error']:checked").val();
+            let search = $("#search").val();
+            console.log(search)
+            console.log(filename.replace(/\//g, '>'))
+            $('#filedisplay').html(filename.replace(/\//g, '>').slice(6))
+
             $.ajax({
-                url: `{% url 'serve_file' %}?file=${filename}&err=${er}`,
+                url: `{% url 'serve_file' %}?file=${filename}&err=${er}&search=${search}`,
                 type: 'GET',
                 success: function (data) {
                     editor.setValue(data)
