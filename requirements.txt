@@ -1,0 +1,14 @@
+asgiref==3.2.10
+certifi==2020.12.5
+chardet==4.0.0
+Django==3.1.2
+django-chunked-upload==2.0.0
+EasyProcess==0.3
+entrypoint2==0.2.3
+idna==2.10
+patool==1.12
+pytz==2020.1
+pyunpack==0.2.2
+requests==2.25.1
+sqlparse==0.4.1
+urllib3==1.26.4
