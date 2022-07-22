@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" type="text/css" href="/static/demo/css/demo.css">
+    <link rel="stylesheet" type="text/css" href="/static/v2/main.css">
+    <link rel="stylesheet" type="text/css" href="/static/v2/tree.css">
+{% endblock %}
+
+
+{% block body %}
+    {% csrf_token %}
+    <div class="container neumorphic_container mt-3 p-3">
+        <div class="h1 row align-items-center">
+            <div class="col text-center">Log Analysis V2</div>
+
+
+        </div>
+        <div class="row flex justify-content-center align-items-center">
+            <form action="">
+                <label><input type="text" id="search-bar" name="srnumber" placeholder="SR Number"><span
+                        class="search-icon"></span></label>
+            </form>
+
+        </div>
+        <div class="row">
+            {% if sr_no %}
+                <ul class="directory-list">
+                    <li class="folder">{{ sr_no.sr_number }}
+                        <ul>
+                            {% for file in files %}
+                                <li><a target="_blank" href="https://cae-largefile-prod.cisco.com/web-ui?appId=CSOne&srId={{ sr_no.sr_number }}&fileName={{ file.fileName }}">{{ file.fileName }}</a></li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                </ul>
+            {% endif %}
+        </div>
+
+
+    </div>
+    <div class="container mt-3 p-3">
+        <div class="row mt-3 p-1 neumorphic_container">
+            <div class="col col-4 text-center">
+                SR Number
+            </div>
+            <div class="col col-4 text-center">
+                Number of Files
+            </div>
+            <div class="col col-4 text-center">
+                Check for new files
+            </div>
+        </div>
+        {% for sr_no in sr %}
+            <div class="row mt-3 p-1 neumorphic_container">
+                <div class="col col-4 text-center">
+                    <a href="?srnumber={{ sr_no.sr_number }}"> {{ sr_no.sr_number }}</a>
+                </div>
+                <div class="col col-4 text-center">
+                    {{ sr_no.files.all.count }}
+                </div>
+
+                <div class="col col-4 text-center">
+                    <a href="?srnumber={{ sr_no.sr_number }}&refresh=true"> Refresh</a>
+                </div>
+
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static  'demo/js/jquery.js' %}"></script>
+    <script src="{% static  'v2/main.js' %}"></script>
+{% endblock %}

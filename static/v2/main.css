@@ -1,0 +1,69 @@
+
+.neumorphic_container {
+    border-radius: 50px;
+    background: #ffffff;
+    box-shadow: 10px 10px 20px #d9d9d9,
+    -8px -8px 16px #d9d9d9;
+}
+
+body {
+
+
+}
+
+
+label {
+    position: relative;
+    cursor: pointer;
+}
+
+.search-icon:before {
+    content: "\f002";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+
+    font-family: "FontAwesome";
+    color: #eeeeee;
+}
+
+#search-bar {
+    width: 16px;
+    height: 16px;
+    border: none;
+    outline: none;
+    padding: 16px;
+    border-radius: 16px;
+    font-size: 1em;
+    transition: 0.5s;
+    color: #ffffff;
+    background-color: #333333;
+    caret-color: #aaaaaa;
+}
+
+#search-bar::placeholder {
+    color: #aaaaaa;
+}
+
+#search-bar:hover {
+    cursor: pointer;
+}
+
+#search-bar:focus {
+    width: 50vw;
+    box-shadow: 0px 5px 25px -5px rgba(215, 215, 215, 255);
+}
+
+#search-bar:focus ~ .search-icon {
+    transition: 0.1s;
+    opacity: 0;
+}
+
+@media only screen and (max-width: 400px) {
+    #search-bar:focus {
+        width: 50vw;
+        transition: 0.5s;
+    }
+}
+
