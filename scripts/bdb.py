@@ -5,7 +5,7 @@ def get_file_list(srnumber):
     a = requests.session()
     s = a.get('https://scripts.cisco.com/api/v2/auth/login',
               headers={
-                  'authorization': 'Basic c2F0aHJpajpwemlyaHQyZ0hBUzEhQCMk'
+                  'authorization': 'Basic '
               })
 
     s = a.get(f'https://scripts.cisco.com/api/v2/attachments/{srnumber}')
